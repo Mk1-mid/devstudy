@@ -29,7 +29,9 @@ function getEx(ex) {
       showSolution: false,
       output: "",
       outputVisible: false,
-      isError: false
+      isError: false,
+      isCorrect: false,
+      expectedOutput: ex.expectedOutput || ""
     };
   }
   return exStates[ex.id];
@@ -220,9 +222,30 @@ function renderExercises(c) {
       html += '<pre class="code-block" style="border:1px solid ' + c + '33;border-left:3px solid ' + c + '">' + esc(ex.solution) + '</pre>';
     }
     if (es.outputVisible) {
+      var statusIcon = "";
+      var statusStyle = "";
+      if (!es.isError && es.expectedOutput) {
+        if (es.isCorrect) {
+          statusIcon = '✓ CORRECTO';
+          statusStyle = 'color:rgb(74, 222, 128);font-weight:700;';
+        } else {
+          statusIcon = '✗ INCORRECTO';
+          statusStyle = 'color:rgb(248, 113, 113);font-weight:700;';
+        }
+      }
+
+      var modeBadge = '';
+      if (es.runMode === 'python') {
+        modeBadge = '<span style="float:right;font-size:10px;color:#60A5FA;font-family:monospace">\u{1F40D} Python</span>';
+      } else if (es.runMode === 'emulator') {
+        modeBadge = '<span style="float:right;font-size:10px;color:#FBBF24;font-family:monospace">\u26A1 Emulador JS</span>';
+      }
+
       html += '<div class="output-box">' +
-        '<p class="output-label">OUTPUT</p>' +
-        '<pre class="output-text ' + (es.isError ? 'error' : 'success') + '">' + esc(es.output) + '</pre>' +
+        (statusIcon
+          ? '<p class="output-label" style="' + statusStyle + '">' + statusIcon + modeBadge + '</p>'
+          : '<p class="output-label">OUTPUT' + modeBadge + '</p>') +
+        '<pre class="output-text ' + (es.isError ? 'error' : (es.isCorrect && !es.isError && es.expectedOutput ? 'success' : '')) + '">' + esc(es.output) + '</pre>' +
         '</div>';
     }
 
@@ -316,6 +339,50 @@ function runExercise(exId) {
   var es = exStates[exId];
   if (!es) return;
 
+  es.output = "\u23f3 Ejecutando...";
+  es.outputVisible = true;
+  es.isError = false;
+  es.isCorrect = false;
+  es.runMode = "";
+  renderContentArea();
+
+  executePython(es.code, function(result) {
+    es.output = result.output;
+    es.isError = result.error;
+    es.runMode = result.mode;
+
+    if (!es.isError && es.expectedOutput) {
+      es.isCorrect = validateOutput(es.output, es.expectedOutput);
+    }
+
+    es.outputVisible = true;
+    renderContentArea();
+  });
+}
+
+// ─── EXECUTE: PYTHON BACKEND (PRIMARY) ──────────────────────────
+function executePython(code, callback) {
+  fetch("/api/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: code })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    var output = (data.output || "").replace(/\r\n/g, "\n").replace(/\n$/, "");
+    callback({
+      output: output || "(sin salida visible)",
+      error: data.error || false,
+      mode: "python"
+    });
+  })
+  .catch(function() {
+    executeEmulator(code, callback);
+  });
+}
+
+// ─── EXECUTE: JS EMULATOR (FALLBACK) ───────────────────────────
+function executeEmulator(code, callback) {
   var lines = [];
   var fakePrint = function() {
     var args = [];
@@ -324,7 +391,8 @@ function runExercise(exId) {
   };
 
   try {
-    var js = es.code
+    var js = code
+      .replace(/^\s*#[^\n]*/gm, "")
       .replace(/print\s*\(/g, "__p__(")
       .replace(/\bTrue\b/g, "true")
       .replace(/\bFalse\b/g, "false")
@@ -340,14 +408,31 @@ function runExercise(exId) {
       "function type(x){return '<class \\'' + typeof x + '\\'>';}";
 
     new Function("__p__", helpers + js)(fakePrint);
-    es.output = lines.join("\n") || "(sin salida visible)";
-    es.isError = false;
+    callback({
+      output: lines.join("\n") || "(sin salida visible)",
+      error: false,
+      mode: "emulator"
+    });
   } catch (e) {
-    es.output = "\u26a0 " + e.message;
-    es.isError = true;
+    callback({
+      output: "\u26a0 " + e.message,
+      error: true,
+      mode: "emulator"
+    });
   }
-  es.outputVisible = true;
-  renderContentArea();
+}
+
+// ─── VALIDATE OUTPUT ────────────────────────────────────────────
+function validateOutput(actualOutput, expectedOutput) {
+  var actual = actualOutput.trim().split("\n").map(function(line) {
+    return line.trim();
+  }).join("\n");
+
+  var expected = expectedOutput.trim().split("\n").map(function(line) {
+    return line.trim();
+  }).join("\n");
+
+  return actual === expected;
 }
 
 // ─── ACTIONS ────────────────────────────────────────────────────
@@ -418,7 +503,9 @@ function resetExercise(exId) {
         showSolution: false,
         output: "",
         outputVisible: false,
-        isError: false
+        isError: false,
+        isCorrect: false,
+        expectedOutput: exercises[i].expectedOutput || ""
       };
       renderContentArea();
       return;

@@ -1,4 +1,55 @@
+# Node
 node_modules/
 dist/
+npm-debug.log*
+
+# Environment files
 .env
+.env.*
+
+# VSCode
 .vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+.venv/
+env/
+ENV/
+build/
+dist-py/
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dylib
+
+# Jupyter
+.ipynb_checkpoints
+
+# SQLite
+*.sqlite3
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Editor directories
+.idea/
+
+# Misc
+*.egg-info/
+pip-wheel-metadata/
+*.pyc
+tmp/
+temp/

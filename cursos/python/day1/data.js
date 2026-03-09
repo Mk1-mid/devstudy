@@ -61,8 +61,7 @@ window.coursesData.push({
               title: "Ejercicio 1 — Tu presentación",
               description: "Creá variables con tu nombre, tu edad y tu ciudad. Luego usá print() para mostrar una presentación como: 'Me llamo Ana, tengo 25 años y vivo en Buenos Aires.'",
               starter: "# Completá con tus datos\nmi_nombre = \nmi_edad   = \nmi_ciudad = \n\n# Mostrá la presentación con print()\nprint(\"Me llamo\", mi_nombre)",
-              solution: "mi_nombre = \"Ana\"\nmi_edad   = 25\nmi_ciudad = \"Buenos Aires\"\n\nprint(\"Me llamo\", mi_nombre + \", tengo\", mi_edad, \"años y vivo en\", mi_ciudad + \".\")",
-              hint: "El texto va entre comillas \"así\". Los números sin comillas. Para unir cosas en print() usá comas."
+              solution: "mi_nombre = \"Ana\"\nmi_edad   = 25\nmi_ciudad = \"Buenos Aires\"\n\nprint(\"Me llamo\", mi_nombre + \", tengo\", mi_edad, \"años y vivo en\", mi_ciudad + \".\")",              expectedOutput: "Me llamo Ana, tengo 25 años y vivo en Buenos Aires.",              hint: "El texto va entre comillas \"así\". Los números sin comillas. Para unir cosas en print() usá comas."
             },
             {
               id: "l1e2",
@@ -70,6 +69,7 @@ window.coursesData.push({
               description: "Tenés 3 notas de examen: 7, 9 y 6. Guardalas en variables, calculá el promedio y mostrá el resultado.",
               starter: "# Guardá las notas\nnota1 = \nnota2 = \nnota3 = \n\n# Calculá el promedio\npromedio = \n\nprint(\"Promedio:\", promedio)",
               solution: "nota1 = 7\nnota2 = 9\nnota3 = 6\n\npromedio = (nota1 + nota2 + nota3) / 3\n\nprint(\"Promedio:\", promedio)",
+              expectedOutput: "Promedio: 7.333333333333333",
               hint: "Promedio = suma de notas dividido cantidad. Usá paréntesis: (nota1 + nota2 + nota3) / 3"
             },
             {
@@ -77,8 +77,7 @@ window.coursesData.push({
               title: "Ejercicio 3 — Precio con IVA",
               description: "Un producto cuesta $1500. Calculá el precio con 21% de IVA y mostrá ambos valores.",
               starter: "precio_base = 1500\n\n# Calculá el IVA (21%)\niva = \n\n# Calculá el precio final\nprecio_final = \n\nprint(\"Precio sin IVA: $\", precio_base)\nprint(\"IVA (21%):      $\", iva)\nprint(\"Precio con IVA: $\", precio_final)",
-              solution: "precio_base = 1500\n\niva = precio_base * 0.21\nprecio_final = precio_base + iva\n\nprint(\"Precio sin IVA: $\", precio_base)\nprint(\"IVA (21%):      $\", iva)\nprint(\"Precio con IVA: $\", precio_final)",
-              hint: "IVA = precio_base × 0.21  →  Precio final = precio_base + iva"
+              solution: "precio_base = 1500\n\niva = precio_base * 0.21\nprecio_final = precio_base + iva\n\nprint(\"Precio sin IVA: $\", precio_base)\nprint(\"IVA (21%):      $\", iva)\nprint(\"Precio con IVA: $\", precio_final)",              expectedOutput: "Precio sin IVA: $ 1500\nIVA (21%): 315.0\nPrecio con IVA: $ 1815.0",              hint: "IVA = precio_base × 0.21  →  Precio final = precio_base + iva"
             },
             {
               id: "l1e4",
@@ -86,6 +85,7 @@ window.coursesData.push({
               description: "La temperatura en Buenos Aires es de 30°C. Convertila a Fahrenheit usando la fórmula: F = C × 9/5 + 32.",
               starter: "celsius = 30\n\n# Convertí a Fahrenheit\nfahrenheit = \n\nprint(\"Temperatura en Celsius:\", celsius)\nprint(\"Temperatura en Fahrenheit:\", fahrenheit)",
               solution: "celsius = 30\n\nfahrenheit = celsius * 9/5 + 32\n\nprint(\"Temperatura en Celsius:\", celsius)\nprint(\"Temperatura en Fahrenheit:\", fahrenheit)",
+              expectedOutput: "Temperatura en Celsius: 30\nTemperatura en Fahrenheit: 86.0",
               hint: "La fórmula es: fahrenheit = celsius * 9/5 + 32. Recordá que Python respeta el orden de operaciones."
             },
             {
@@ -93,8 +93,7 @@ window.coursesData.push({
               title: "Ejercicio 5 — Calculadora de cambio",
               description: "Un cliente paga $5000 por un producto que cuesta $3450. Calculá el vuelto y mostrá un ticket.",
               starter: "precio_producto = 3450\nmonto_pagado = 5000\n\n# Calculá el vuelto\nvuelto = \n\n# Mostrá el ticket\nprint(\"===== TICKET =====\")\nprint(\"Producto:    $\", precio_producto)\nprint(\"Pagó:        $\", monto_pagado)\nprint(\"Vuelto:      $\", vuelto)\nprint(\"=================\")",
-              solution: "precio_producto = 3450\nmonto_pagado = 5000\n\nvuelto = monto_pagado - precio_producto\n\nprint(\"===== TICKET =====\")\nprint(\"Producto:    $\", precio_producto)\nprint(\"Pagó:        $\", monto_pagado)\nprint(\"Vuelto:      $\", vuelto)\nprint(\"=================\")",
-              hint: "El vuelto es la resta: monto_pagado - precio_producto."
+              solution: "precio_producto = 3450\nmonto_pagado = 5000\n\nvuelto = monto_pagado - precio_producto\n\nprint(\"===== TICKET =====\")\nprint(\"Producto:    $\", precio_producto)\nprint(\"Pagó:        $\", monto_pagado)\nprint(\"Vuelto:      $\", vuelto)\nprint(\"=================\")",              expectedOutput: "===== TICKET =====\nProducto: $ 3450\nPagó: $ 5000\nVuelto: $ 1550\n===================",              hint: "El vuelto es la resta: monto_pagado - precio_producto."
             }
           ]
         },
@@ -146,6 +145,7 @@ window.coursesData.push({
               description: "Dada una nota, mostrá si es 'Sobresaliente' (>=9), 'Muy Bueno' (>=7), 'Aprobado' (>=6) o 'Reprobado' (<6).",
               starter: "nota = 7\n\n# Usá if / elif / else para clasificar la nota\n",
               solution: "nota = 7\n\nif nota >= 9:\n    print(\"Sobresaliente\")\nelif nota >= 7:\n    print(\"Muy Bueno\")\nelif nota >= 6:\n    print(\"Aprobado\")\nelse:\n    print(\"Reprobado\")",
+              expectedOutput: "Muy Bueno",
               hint: "Empezá por la condición más alta (>=9) y bajá. El else captura todo lo que no cumplió ningún if/elif."
             },
             {
@@ -154,6 +154,7 @@ window.coursesData.push({
               description: "Usá un bucle for para mostrar la tabla de multiplicar del número 7 (del 1 al 10).",
               starter: "for i in range(1, 11):\n    resultado = \n    print(\"7 x\", i, \"=\", resultado)",
               solution: "for i in range(1, 11):\n    resultado = 7 * i\n    print(\"7 x\", i, \"=\", resultado)",
+              expectedOutput: "7 x 1 = 7\n7 x 2 = 14\n7 x 3 = 21\n7 x 4 = 28\n7 x 5 = 35\n7 x 6 = 42\n7 x 7 = 49\n7 x 8 = 56\n7 x 9 = 63\n7 x 10 = 70",
               hint: "resultado = 7 * i  (multiplicá el número fijo por el contador del bucle)"
             },
             {
@@ -162,6 +163,7 @@ window.coursesData.push({
               description: "Usá un bucle while para mostrar una cuenta regresiva del 10 al 1, y al final imprimí '¡Ya!'.",
               starter: "numero = 10\n\nwhile numero >= 1:\n    print(numero)\n    numero = \n\nprint(\"Ya!\")",
               solution: "numero = 10\n\nwhile numero >= 1:\n    print(numero)\n    numero = numero - 1\n\nprint(\"Ya!\")",
+              expectedOutput: "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nYa!",
               hint: "En cada vuelta del while restale 1 al número: numero = numero - 1"
             },
             {
@@ -170,6 +172,7 @@ window.coursesData.push({
               description: "Usá un bucle for para recorrer los números del 1 al 10 y mostrar si cada uno es par o impar.",
               starter: "for numero in range(1, 11):\n    # Verificá si es par o impar\n    if :\n        print(numero, \"es par\")\n    else:\n        print(numero, \"es impar\")",
               solution: "for numero in range(1, 11):\n    if numero % 2 == 0:\n        print(numero, \"es par\")\n    else:\n        print(numero, \"es impar\")",
+              expectedOutput: "1 es impar\n2 es par\n3 es impar\n4 es par\n5 es impar\n6 es par\n7 es impar\n8 es par\n9 es impar\n10 es par",
               hint: "Un número es par si el resto de dividirlo por 2 es 0: numero % 2 == 0"
             },
             {
@@ -178,6 +181,7 @@ window.coursesData.push({
               description: "Dada una lista de edades [4, 12, 17, 25, 8, 65], recorrela con un for y clasificá cada una: 'Niño' (0-11), 'Adolescente' (12-17), 'Adulto' (18-64), 'Jubilado' (65+).",
               starter: "edades = [4, 12, 17, 25, 8, 65]\n\nfor edad in edades:\n    if :\n        print(edad, \"-> Niño\")\n    elif :\n        print(edad, \"-> Adolescente\")\n    elif :\n        print(edad, \"-> Adulto\")\n    else:\n        print(edad, \"-> Jubilado\")",
               solution: "edades = [4, 12, 17, 25, 8, 65]\n\nfor edad in edades:\n    if edad <= 11:\n        print(edad, \"-> Niño\")\n    elif edad <= 17:\n        print(edad, \"-> Adolescente\")\n    elif edad <= 64:\n        print(edad, \"-> Adulto\")\n    else:\n        print(edad, \"-> Jubilado\")",
+              expectedOutput: "4 -> Niño\n12 -> Adolescente\n17 -> Adolescente\n25 -> Adulto\n8 -> Niño\n65 -> Jubilado",
               hint: "Empezá por el rango más bajo: edad <= 11 para Niño, luego subí. El else captura 65+."
             },
             {
@@ -186,6 +190,7 @@ window.coursesData.push({
               description: "Usá un bucle while para sumar los números pares del 2 al 20 (2+4+6+...+20). El resultado debe ser 110.",
               starter: "suma = 0\nnumero = 2\n\nwhile numero <= 20:\n    suma = \n    numero = \n\nprint(\"La suma de pares del 2 al 20 es:\", suma)",
               solution: "suma = 0\nnumero = 2\n\nwhile numero <= 20:\n    suma = suma + numero\n    numero = numero + 2\n\nprint(\"La suma de pares del 2 al 20 es:\", suma)",
+              expectedOutput: "La suma de pares del 2 al 20 es: 110",
               hint: "Sumá el numero actual al acumulador: suma = suma + numero. Avanzá de 2 en 2: numero = numero + 2"
             }
           ]
@@ -224,6 +229,7 @@ window.coursesData.push({
               description: "Diseñá un algoritmo que compare a = 45 y b = 72, y muestre cuál es el mayor.",
               starter: "a = 45\nb = 72\n\n# Escribi el algoritmo con if/elif/else\n",
               solution: "a = 45\nb = 72\n\nif a > b:\n    print(\"El mayor es:\", a)\nelif b > a:\n    print(\"El mayor es:\", b)\nelse:\n    print(\"Los dos numeros son iguales\")",
+              expectedOutput: "El mayor es: 72",
               hint: "Necesitás 3 casos: a > b, b > a, o iguales (else)."
             },
             {
@@ -232,6 +238,7 @@ window.coursesData.push({
               description: "Usá un bucle for para sumar todos los números del 1 al 100. El resultado debe ser 5050.",
               starter: "suma_total = 0\n\nfor numero in range(1, 101):\n    suma_total = \n\nprint(\"La suma del 1 al 100 es:\", suma_total)",
               solution: "suma_total = 0\n\nfor numero in range(1, 101):\n    suma_total = suma_total + numero\n\nprint(\"La suma del 1 al 100 es:\", suma_total)",
+              expectedOutput: "La suma del 1 al 100 es: 5050",
               hint: "En cada vuelta sumale el numero actual al acumulador: suma_total = suma_total + numero"
             },
             {
@@ -240,6 +247,7 @@ window.coursesData.push({
               description: "Dada la lista de notas [8, 4, 6, 3, 9, 5, 7, 2], recorrela y contá cuántos aprobaron (nota >= 6) y cuántos reprobaron.",
               starter: "notas = [8, 4, 6, 3, 9, 5, 7, 2]\naprobados = 0\nreprobados = 0\n\nfor nota in notas:\n    if :\n        aprobados = \n    else:\n        reprobados = \n\nprint(\"Aprobados:\", aprobados)\nprint(\"Reprobados:\", reprobados)",
               solution: "notas = [8, 4, 6, 3, 9, 5, 7, 2]\naprobados = 0\nreprobados = 0\n\nfor nota in notas:\n    if nota >= 6:\n        aprobados = aprobados + 1\n    else:\n        reprobados = reprobados + 1\n\nprint(\"Aprobados:\", aprobados)\nprint(\"Reprobados:\", reprobados)",
+              expectedOutput: "Aprobados: 4\nReprobados: 4",
               hint: "Si nota >= 6 sumá 1 a aprobados, sino sumá 1 a reprobados."
             },
             {
@@ -248,6 +256,7 @@ window.coursesData.push({
               description: "Precios: [250, 800, 1200, 450, 3000]. Si el precio es mayor a $500 tiene 15% de descuento. Mostrá cada precio y el total.",
               starter: "precios = [250, 800, 1200, 450, 3000]\ntotal = 0\n\nfor precio in precios:\n    if :\n        precio_final = \n        print(\"Precio:\", precio, \"-> Con 15% OFF:\", precio_final)\n    else:\n        precio_final = \n        print(\"Precio:\", precio, \"-> Sin descuento:\", precio_final)\n    total = \n\nprint(\"Total a pagar: $\", total)",
               solution: "precios = [250, 800, 1200, 450, 3000]\ntotal = 0\n\nfor precio in precios:\n    if precio > 500:\n        precio_final = precio * 0.85\n        print(\"Precio:\", precio, \"-> Con 15% OFF:\", precio_final)\n    else:\n        precio_final = precio\n        print(\"Precio:\", precio, \"-> Sin descuento:\", precio_final)\n    total = total + precio_final\n\nprint(\"Total a pagar: $\", total)",
+              expectedOutput: "Precio: 250 -> Sin descuento: 250\nPrecio: 800 -> Con 15% OFF: 680.0\nPrecio: 1200 -> Con 15% OFF: 1020.0\nPrecio: 450 -> Sin descuento: 450\nPrecio: 3000 -> Con 15% OFF: 2550.0\nTotal a pagar: $ 4950.0",
               hint: "15% de descuento = precio * 0.85. Acumulá cada precio_final en total."
             }
           ]

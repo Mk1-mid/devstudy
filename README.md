@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Plataforma de clases de repaso construida con **HTML, CSS y JavaScript nativo**. Sin frameworks ni herramientas de build. Cada curso tiene días organizados en carpetas independientes con toda la información autocontenida.
+Plataforma de clases de repaso construida con **HTML, CSS y JavaScript nativo**. Incluye un servidor Node.js opcional que ejecuta **Python real** para validar ejercicios. Sin frameworks de frontend ni herramientas de build. Cada curso tiene días organizados en carpetas independientes con toda la información autocontenida.
 
 ---
 
@@ -11,7 +11,9 @@ Plataforma de clases de repaso construida con **HTML, CSS y JavaScript nativo**.
 ```
 ├── index.html                  ← Punto de entrada
 ├── styles.css                  ← Estilos (tema oscuro)
-├── app.js                      ← Motor de la app (estado, render, eventos)
+├── app.js                      ← Motor de la app (estado, render, eventos, dual runner)
+├── server.js                   ← Servidor Node.js (ejecución Python real)
+├── package.json                ← Dependencias Node.js (Express)
 ├── cursos/
 │   ├── python/
 │   │   ├── day1/
@@ -68,7 +70,8 @@ Cada `data.js` de un día contiene **todo autocontenido**:
 ### 15 Ejercicios prácticos
 - Distribuidos entre las 3 lecciones (~5 por lección).
 - **Dificultad progresiva** dentro de cada lección.
-- Cada ejercicio tiene: `title`, `description`, `starter`, `solution`, `hint`.
+- Cada ejercicio tiene: `title`, `description`, `starter`, `solution`, `expectedOutput`, `hint`.
+- **Validación por output**: el sistema compara la salida del programa del alumno con el output esperado, no el código fuente. Esto permite que el alumno use comentarios, espacios distintos, nombres de variables alternativos, etc.
 - Solo usan conceptos explicados en la teoría del día (no se adelantan temas).
 
 | Lección | Ejercicios | Nivel           |
@@ -139,7 +142,7 @@ Cada `data.js` ejecuta `window.coursesData.push({ ... })` con esta estructura:
           number: 1,
           title: "Mensajes, variables y operaciones",
           theory: [{ heading, tag, content, code, callout }],
-          exercises: [{ id, title, description, starter, solution, hint }]
+          exercises: [{ id, title, description, starter, solution, expectedOutput, hint }]
         }
       ],
       classActivities: [
@@ -177,14 +180,64 @@ Cada `data.js` ejecuta `window.coursesData.push({ ... })` con esta estructura:
 
 ## Ejecución
 
-Abrí `index.html` en el navegador. No necesita servidor, build ni instalación.
+### Modo 1: Con servidor Node.js (recomendado — Python real)
 
+Requiere **Node.js** y **Python** instalados en el sistema.
+
+```bash
+# Solo la primera vez: instalar dependencias
+npm install
+
+# Iniciar el servidor
+npm start
 ```
+
+Abrir **http://localhost:3000** en el navegador. Los ejercicios se ejecutan con **Python real** (🐍 Python aparece en el output).
+
+**Protecciones del servidor:**
+- ⏱️ Timeout de 5 segundos (protege contra bucles infinitos)
+- 📄 Ejecución vía archivos temporales (sin inyección de comandos)
+- 📏 Límite de 10KB por código enviado
+- 🐍 Errores de Python reales (ej: `SyntaxError: expected ':'`)
+
+### Modo 2: Sin servidor (GitHub Pages / estático)
+
+```bash
 # Opción 1: doble clic en index.html
 
 # Opción 2: desde la terminal
 start index.html
 ```
+
+Funciona sin instalar nada. Los ejercicios usan un **emulador JS** como fallback (⚡ Emulador JS aparece en el output). La app detecta automáticamente qué modo usar.
+
+### Detección automática
+
+El frontend intenta conectar al backend (`/api/execute`). Si el servidor no responde, cae silenciosamente al emulador JavaScript. No requiere configuración.
+
+| Modo | Badge en output | Requisitos | Limitaciones |
+|------|----------------|------------|--------------|
+| 🐍 Python | `🐍 Python` | Node.js + Python | Ninguna |
+| ⚡ Emulador | `⚡ Emulador JS` | Ninguno | Subset de Python emulado en JS |
+
+---
+
+## Validación de ejercicios
+
+Los ejercicios se validan **comparando el output**, no el código fuente. Esto permite:
+
+- ✅ Comentarios (`# esto es un comentario`)
+- ✅ Espacios diferentes (`x=1` vs `x = 1`)
+- ✅ Variables con otros nombres (`resultado` vs `promedio`)
+- ✅ Cualquier forma válida de resolver el problema
+
+El sistema normaliza la salida (trim, ignora espacios extras por línea) antes de comparar con el `expectedOutput` definido en el ejercicio.
+
+| Resultado | Visual |
+|-----------|--------|
+| ✓ Correcto | Texto verde + badge "✓ CORRECTO" |
+| ✗ Incorrecto | Texto rojo + badge "✗ INCORRECTO" |
+| Error de sintaxis | Texto rojo con el error de Python |
 
 ---
 
@@ -192,5 +245,7 @@ start index.html
 
 - **HTML5** — Estructura semántica
 - **CSS3** — Tema oscuro (#060B18), layout con Flexbox
-- **JavaScript nativo** — Sin frameworks, sin dependencias, sin build tools
-- **GitHub Pages** — Deploy directo desde la rama main
+- **JavaScript nativo** — Sin frameworks, sin dependencias de frontend, sin build tools
+- **Node.js + Express** — Servidor local para ejecución de Python real (opcional)
+- **Python** — Ejecución real de ejercicios cuando el servidor está activo
+- **GitHub Pages** — Deploy directo desde la rama main (modo emulador JS)

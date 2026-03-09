@@ -1,0 +1,12 @@
+{
+  "name": "devstudy",
+  "version": "1.0.0",
+  "description": "DevStudy — Plataforma educativa con ejecución Python real",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
