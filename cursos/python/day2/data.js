@@ -15,15 +15,36 @@ window.coursesData = window.coursesData || [];
           {
             heading: "Introducción a las funciones",
             tag: "FUNCIONES",
-            content: "Las funciones permiten organizar y modularizar el código. En Python son objetos de primera clase: pueden asignarse a variables, pasarse como argumentos y devolverse desde otras funciones.",
-            code: "def saludar(nombre):\n    return f\"Hola, {nombre}!\"\n\nprint(saludar('María'))",
-            callout: null
+            content: "Las funciones permiten organizar y modularizar el código. En Python son objetos de primera clase: pueden asignarse a variables, pasarse como argumentos y devolverse desde otras funciones. Esto facilita la abstracción y la reutilización.",
+            code: "def saludar(nombre):\n    \"\"\"Devuelve un saludo para el nombre provisto.\"\"\"\n    return f\"Hola, {nombre}!\"\n\nprint(saludar('María'))",
+            callout: "💡 Buenas prácticas: dar nombres descriptivos y documentar con docstrings (" + '""' + "docstring" + '""' + ")"
           },
           {
             heading: "Argumentos y retorno",
             tag: "ARGUMENTOS",
-            content: "Soporta argumentos posicionales, por nombre, valores por defecto, *args y **kwargs. Una función puede devolver valores con return.",
-            code: "def sumar(a, b=0):\n    return a + b\n\nprint(sumar(2, 3))  # 5",
+            content: "Soporta argumentos posicionales, por nombre, valores por defecto, argumentos variables (`*args`) y argumentos por clave variable (`**kwargs`). Una función puede devolver valores con `return`. También es común devolver tuplas para múltiples valores.",
+            code: "def sumar(a, b=0):\n    return a + b\n\nprint(sumar(2, 3))  # 5\n\n# Ejemplo: *args recoge argumentos posicionales extras\ndef varios(*args):\n    print('args:', args)\n\nvarios(1,2,3)  # args: (1, 2, 3)\n\n# **kwargs recoge argumentos nombrados extras\ndef extras(**kwargs):\n    print('kwargs:', kwargs)\n\nextras(x=10, y=20)  # kwargs: {'x': 10, 'y': 20}",
+            callout: null
+          },
+          {
+            heading: "Detalles sobre parámetros: mutables y keyword-only",
+            tag: "PARAMETROS",
+            content: "Evitar valores por defecto mutables (listas/diccionarios) porque se comparten entre llamadas. Puedes definir parámetros que solo acepten keywords (keyword-only) usando '*'.",
+            code: "# Evitar esto (valor por defecto mutable):\ndef append_item(item, lst=[]):\n    lst.append(item)\n    return lst\n\nprint(append_item(1))\nprint(append_item(2))  # resultado inesperado: [1, 2]\n\n# Forma correcta:\ndef append_item(item, lst=None):\n    if lst is None:\n        lst = []\n    lst.append(item)\n    return lst\n\nprint(append_item(1))\nprint(append_item(2))  # listas independientes\n\n# Parámetro keyword-only (después de *):\ndef ejemplo(a, *, flag=False):\n    return (a, flag)\n\nprint(ejemplo(1, flag=True))",
+            callout: "⚠️ Evitar valores por defecto mutables: usar None como marcador y crear la estructura dentro de la función."
+          },
+          {
+            heading: "Funciones como objetos y lambdas",
+            tag: "AVANZADO",
+            content: "Las funciones pueden almacenarse en variables, pasarse como parámetros y retornarse. Las expresiones lambda permiten funciones pequeñas anónimas: útiles para callbacks o transformaciones cortas.",
+            code: "def aplicar(func, valor):\n    return func(valor)\n\nf = lambda x: x * 2\nprint(aplicar(f, 5))  # 10\n\n# También se pueden usar funciones dentro de otras (closures)\ndef multiplicador(n):\n    def mult(x):\n        return x * n\n    return mult\n\npor_3 = multiplicador(3)\nprint(por_3(5))  # 15",
+            callout: null
+          },
+          {
+            heading: "Recursión y anotaciones de tipo",
+            tag: "RECURSION",
+            content: "La recursión es una técnica donde una función se llama a sí misma; útil para problemas divisibles en subproblemas. Las anotaciones de tipo ayudan a la legibilidad y herramientas estáticas.",
+            code: "def factorial(n: int) -> int:\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))  # 120",
             callout: null
           }
         ],
@@ -81,18 +102,18 @@ window.coursesData = window.coursesData || [];
         title: "Colecciones — Listas y Tuplas",
         theory: [
           {
-            heading: "Listas",
+            heading: "Listas — descripción y métodos comunes",
             tag: "LISTAS",
-            content: "Listas: secuencias ordenadas y mutables. Sintaxis: [1, 2, 3]. Métodos: append, pop, remove, extend, etc.",
-            code: "mi_lista = [1, 2, 3]\nmi_lista.append(4)\nprint(mi_lista)",
-            callout: null
+            content: "Listas: secuencias ordenadas y mutables. Sintaxis: [1, 2, 3]. Son la estructura más usada para colecciones ordenadas y ofrecen muchos métodos para insertar, eliminar, buscar y transformar datos.",
+            code: "mi_lista = [1, 2, 3]\n# Métodos comunes:\nmi_lista.append(4)      # añade al final\nmi_lista.extend([5,6])  # extiende con otra lista\nmi_lista.insert(1, 10)  # inserta en índice\nprint(mi_lista)  # [1, 10, 2, 3, 4, 5, 6]\n\nmi_lista.remove(10)     # elimina la primera aparición\nvalor = mi_lista.pop()  # elimina y devuelve el último elemento\nprint('pop->', valor)\n\n# Otras utilidades:\nprint('index of 3:', mi_lista.index(3))\nprint('count of 2:', mi_lista.count(2))\nmi_lista.sort()\nmi_lista.reverse()\nprint('final:', mi_lista)\n\n# List comprehension (transformación):\ncuadrados = [x*x for x in [1,2,3]]\nprint(cuadrados)",
+            callout: "💡 Tip: list comprehensions son legibles y rápidas para transformar listas; usa `copy()` si necesitas duplicar una lista antes de mutarla."
           },
           {
-            heading: "Tuplas",
+            heading: "Tuplas y desempaquetado",
             tag: "TUPLAS",
-            content: "Tuplas: secuencias ordenadas e inmutables. Sintaxis: (1, 2, 3). Útiles cuando no queremos permitir modificaciones.",
-            code: "mi_tupla = (1, 2, 3)\nprint(mi_tupla)",
-            callout: null
+            content: "Tuplas: secuencias ordenadas e inmutables. Sintaxis: (1, 2, 3). Útiles para retornar múltiples valores, como claves en diccionarios (si contienen tipos inmutables) y para proteger datos que no deben cambiar.",
+            code: "mi_tupla = (1, 2, 3)\n# Desempaquetado\na, b, c = mi_tupla\nprint(a, b, c)\n\n# Tupla con un solo elemento (nota la coma):\nsingle = (42,)\nprint(type(single))",
+            callout: "⚠️ Recordá que una tupla de un elemento requiere la coma: (x,)"
           }
         ],
         exercises: [
@@ -149,18 +170,18 @@ window.coursesData = window.coursesData || [];
         title: "Colecciones — Diccionarios y Sets",
         theory: [
           {
-            heading: "Diccionarios",
+            heading: "Diccionarios — operaciones y métodos",
             tag: "DICT",
-            content: "Diccionarios: pares clave-valor. Sintaxis: { 'clave': valor }. Métodos: keys(), values(), items(), get().",
-            code: "persona = {'nombre':'Ana', 'edad':30}\nprint(persona['nombre'])\nprint(persona.get('edad'))",
-            callout: null
+            content: "Diccionarios: colecciones llave→valor. Permiten acceso O(1) por clave. Métodos útiles: `keys()`, `values()`, `items()`, `get()`, `setdefault()`, `pop()`, `popitem()`, `update()`, `clear()` y construcciones por comprensión (`{k: v for ...}`).",
+            code: "persona = {'nombre':'Ana', 'edad':30}\n# Acceso seguro\nprint(persona.get('altura', 'desconocida'))\n# Iterar\nfor k, v in persona.items():\n    print(k, '->', v)\n# Agregar/actualizar\npersona['ciudad'] = 'Bogotá'\npersona.update({'edad': 31})\nprint(persona)\n\n# Comprehension de diccionario\nnums = [1,2,3]\nsq = {n: n*n for n in nums}\nprint(sq)",
+            callout: "💡 `get()` evita KeyError proporcionando un valor por defecto; `setdefault()` es útil para agrupar valores por clave."
           },
           {
-            heading: "Conjuntos (set)",
+            heading: "Conjuntos (set) — métodos y operaciones",
             tag: "SET",
-            content: "Conjuntos: colecciones sin orden y sin duplicados. Operaciones: unión, intersección, diferencia.",
-            code: "a = set([1,2,2,3])\nprint(a)  # {1,2,3}",
-            callout: null
+            content: "Conjuntos: colecciones sin orden y sin duplicados. Métodos: `add()`, `remove()`, `discard()`, `pop()`, `clear()`. Operaciones: unión (`|`/`union()`), intersección (`&`/`intersection()`), diferencia (`-`/`difference()`), diferencia simétrica (`^`/`symmetric_difference()`).",
+            code: "a = set([1,2,2,3])\nprint(a)  # {1,2,3}\na.add(4)\na.discard(2)\nprint(a)\n\nb = set([3,4,5])\nprint('union', a | b)\nprint('inter', a & b)\nprint('diff', a - b)",
+            callout: "💡 Usa `discard()` cuando no estás seguro si el elemento existe (no lanza error). Para eliminar duplicados manteniendo orden, usa un set auxiliar y una lista resultante."
           }
         ],
         exercises: [

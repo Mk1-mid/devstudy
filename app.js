@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ─── DATA (cargada desde archivos externos) ──────────────────────
-const courses = window.coursesData || [];
+let courses = window.coursesData || [];
 
 // ─── STATE ───────────────────────────────────────────────────────
 let activeCourse  = courses[0];
@@ -39,6 +39,16 @@ function getEx(ex) {
 
 // ─── RENDER: FULL PAGE ──────────────────────────────────────────
 function render() {
+  // refrescar lista de cursos por si se cargó un script nuevo dinámicamente
+  courses = window.coursesData || [];
+
+  // si el curso activo ya no existe (o es la primera carga), inicializar
+  if (!activeCourse || !courses.find(function(x){ return x.id === activeCourse.id; })) {
+    activeCourse = courses[0];
+    activeModule = activeCourse && activeCourse.modules ? activeCourse.modules[0] : null;
+    activeLesson = activeModule && activeModule.lessons ? activeModule.lessons[0] : null;
+  }
+
   var c = activeCourse.color;
   var a = activeCourse.accent;
 
