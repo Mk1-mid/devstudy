@@ -1,5 +1,7 @@
 # DevStudy — Plataforma Educativa Interactiva
 
+### 🚀 [Ver la app en vivo](https://devstudy-production.up.railway.app)
+
 ## Descripción
 
 Plataforma de clases de repaso construida con **HTML, CSS y JavaScript nativo**. Incluye un servidor Node.js opcional que ejecuta **Python real** para validar ejercicios. Sin frameworks de frontend ni herramientas de build. Cada curso tiene días organizados en carpetas independientes con toda la información autocontenida.
