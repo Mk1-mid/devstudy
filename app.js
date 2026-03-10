@@ -391,35 +391,264 @@ function executePython(code, callback) {
   });
 }
 
+// ─── PYTHON → JS TRANSPILER ────────────────────────────────────
+function _pyToJS(code) {
+  var src = code.split('\n');
+  var out = [];
+  var blockStack = [];
+  var classNames = [];
+  for (var i = 0; i < src.length; i++) {
+    var cm = src[i].trim().match(/^class\s+(\w+)/);
+    if (cm) classNames.push(cm[1]);
+  }
+  for (var i = 0; i < src.length; i++) {
+    var raw = src[i];
+    var trimmed = raw.trim();
+    if (!trimmed || /^#/.test(trimmed)) continue;
+    var indent = 0;
+    for (var c = 0; c < raw.length; c++) {
+      if (raw[c] === ' ') indent++;
+      else if (raw[c] === '\t') indent += 4;
+      else break;
+    }
+    var isCont = /^(elif\b|else\s*:|except\b|finally\s*:)/.test(trimmed);
+    while (blockStack.length > 0 && indent <= blockStack[blockStack.length - 1]) {
+      blockStack.pop();
+      out.push(_pyPad(blockStack.length) + '}');
+    }
+    if (isCont && out.length > 0 && out[out.length - 1].trim() === '}') {
+      var brace = out.pop();
+      var pad = brace.replace(/\}.*/, '');
+      var conv = _pyLine(trimmed, classNames);
+      out.push(pad + '} ' + conv.js + (conv.block ? ' {' : ''));
+      if (conv.block) blockStack.push(indent);
+    } else {
+      var conv = _pyLine(trimmed, classNames);
+      if (conv.block) {
+        out.push(_pyPad(blockStack.length) + conv.js + ' {');
+        blockStack.push(indent);
+      } else {
+        out.push(_pyPad(blockStack.length) + conv.js);
+      }
+    }
+  }
+  while (blockStack.length > 0) {
+    blockStack.pop();
+    out.push(_pyPad(blockStack.length) + '}');
+  }
+  return out.join('\n');
+}
+
+function _pyPad(n) { var s = ''; for (var i = 0; i < n; i++) s += '  '; return s; }
+
+function _pyLine(line, cn) {
+  if (/^import\b|^from\s+\w+\s+import\b/.test(line))
+    return { js: '// ' + line, block: false };
+  if (line === 'pass') return { js: '/* pass */', block: false };
+  var dm = line.match(/^del\s+(\w+)\[(.+)\]/);
+  if (dm) return { js: dm[1] + '.splice(' + _pyExpr(dm[2], cn) + ', 1);', block: false };
+  var clm = line.match(/^class\s+(\w+)(?:\s*\((\w+)\))?\s*:/);
+  if (clm) return { js: 'class ' + clm[1] + (clm[2] ? ' extends ' + clm[2] : ''), block: true };
+  var ini = line.match(/^def\s+__init__\s*\(\s*self\s*,?\s*(.*?)\)\s*:/);
+  if (ini) return { js: 'constructor(' + ini[1].trim() + ')', block: true };
+  if (/^def\s+__str__\s*\(\s*self\s*\)\s*:/.test(line))
+    return { js: 'toString()', block: true };
+  var mm = line.match(/^def\s+(\w+)\s*\(\s*self\s*,?\s*(.*?)\)\s*:/);
+  if (mm) return { js: mm[1] + '(' + mm[2].trim() + ')', block: true };
+  var fm = line.match(/^def\s+(\w+)\s*\(([^)]*)\)\s*:/);
+  if (fm) return { js: 'function ' + fm[1] + '(' + _pyExpr(fm[2], cn) + ')', block: true };
+  var fo = line.match(/^for\s+(.+?)\s+in\s+(.+?)\s*:/);
+  if (fo) {
+    var vars = fo[1].trim();
+    var iter = _pyExpr(fo[2].trim(), cn);
+    if (vars.indexOf(',') !== -1) vars = '[' + vars + ']';
+    return { js: 'for (var ' + vars + ' of ' + iter + ')', block: true };
+  }
+  var wm = line.match(/^while\s+(.+?)\s*:/);
+  if (wm) return { js: 'while (' + _pyExpr(wm[1], cn) + ')', block: true };
+  var im = line.match(/^if\s+(.+?)\s*:/);
+  if (im) return { js: 'if (' + _pyExpr(im[1], cn) + ')', block: true };
+  var em = line.match(/^elif\s+(.+?)\s*:/);
+  if (em) return { js: 'else if (' + _pyExpr(em[1], cn) + ')', block: true };
+  if (/^else\s*:/.test(line)) return { js: 'else', block: true };
+  if (/^try\s*:/.test(line)) return { js: 'try', block: true };
+  var exc = line.match(/^except\s+(\w+)(?:\s+as\s+(\w+))?\s*:/);
+  if (exc) return { js: 'catch (' + (exc[2] || '_e') + ')', block: true };
+  if (/^except\s*:/.test(line)) return { js: 'catch (_e)', block: true };
+  if (/^finally\s*:/.test(line)) return { js: 'finally', block: true };
+  var rm = line.match(/^raise\s+(.*)/);
+  if (rm) {
+    var rex = rm[1].trim();
+    if (/^\w+\(/.test(rex)) return { js: 'throw new ' + _pyExpr(rex, cn) + ';', block: false };
+    return { js: 'throw new ' + _pyExpr(rex, cn) + '();', block: false };
+  }
+  var ret = line.match(/^return\b\s*(.*)/);
+  if (ret) return { js: 'return ' + _pyExpr(ret[1], cn) + ';', block: false };
+  var up = line.match(/^(\w+(?:\s*,\s*\w+)+)\s*=\s*(.+)$/);
+  if (up) {
+    var lhs = up[1].trim();
+    var rhs = up[2].trim();
+    var fc = rhs.indexOf(','), fp = rhs.indexOf('(');
+    var wrap = fc !== -1 && (fp === -1 || fc < fp);
+    if (wrap) return { js: '[' + lhs + '] = [' + _pyExpr(rhs, cn) + '];', block: false };
+    return { js: '[' + lhs + '] = ' + _pyExpr(rhs, cn) + ';', block: false };
+  }
+  return { js: _pyExpr(line, cn) + ';', block: false };
+}
+
+function _pyExpr(e, cn) {
+  if (!e) return '';
+  var r = e;
+  r = r.replace(/\bprint\s*\(/g, '__p__(');
+  r = r.replace(/\bself\./g, 'this.');
+  r = r.replace(/\blambda\s+([^:]+):\s*(.+)/g, function(_, a, b) {
+    return 'function(' + a.trim() + '){ return ' + b.trim() + '; }';
+  });
+  r = r.replace(/\bTrue\b/g, 'true');
+  r = r.replace(/\bFalse\b/g, 'false');
+  r = r.replace(/\bNone\b/g, 'null');
+  r = r.replace(/\bnot\s+in\b/g, ' __NI__ ');
+  r = r.replace(/\band\b/g, '&&');
+  r = r.replace(/\bor\b/g, '||');
+  r = r.replace(/\bnot\b/g, '!');
+  r = r.replace(/(\S+)\s+__NI__\s+(\S+)/g, '!__in__($1, $2)');
+  r = r.replace(/([a-zA-Z0-9_)\]]+)\s*\/\/\s*([a-zA-Z0-9_(]+)/g, 'Math.floor($1/$2)');
+  r = r.replace(/\.append\(/g, '.push(');
+  r = r.replace(/f"([^"]*)"/g, function(_, c) { return '`' + c.replace(/\{/g, '${') + '`'; });
+  r = r.replace(/f'([^']*)'/g, function(_, c) { return '`' + c.replace(/\{/g, '${') + '`'; });
+  r = r.replace(/(\w+)\.items\(\)/g, 'Object.entries($1)');
+  r = r.replace(/(\w+)\.keys\(\)/g, 'Object.keys($1)');
+  r = r.replace(/(\w+)\.values\(\)/g, 'Object.values($1)');
+  r = r.replace(/(\w+)\.get\(([^,)]+),\s*([^)]+)\)/g, '($2 in $1 ? $1[$2] : $3)');
+  r = r.replace(/(\w+)\.get\(([^)]+)\)/g, '($2 in $1 ? $1[$2] : null)');
+  r = r.replace(/(\w+)\.setdefault\(([^,]+),\s*([^)]+)\)/g, '__setdefault__($1, $2, $3)');
+  r = r.replace(/\.index\(/g, '.indexOf(');
+  r = r.replace(/\btype\(/g, '__type__(');
+  r = r.replace(/__type__\(([^)]+)\)\.__name__/g, '__typeName__($1)');
+  r = r.replace(/\bset\(\)/g, 'new Set()');
+  r = r.replace(/\bset\(\[/g, 'new Set([');
+  r = r.replace(/\[([^\]]+?)\s+for\s+(\w+)\s+in\s+([^\]]+?)\s+if\s+([^\]]+)\]/g,
+    function(_, expr, v, iter, cond) {
+      return _pyExpr(iter, cn) + '.filter(function(' + v + '){return ' + _pyExpr(cond, cn) + ';}).map(function(' + v + '){return ' + _pyExpr(expr, cn) + ';})';
+    });
+  r = r.replace(/\[([^\]]+?)\s+for\s+(\w+)\s+in\s+([^\]]+)\]/g,
+    function(_, expr, v, iter) {
+      return _pyExpr(iter, cn) + '.map(function(' + v + '){return ' + _pyExpr(expr, cn) + ';})';
+    });
+  r = r.replace(/\bsum\(([^)]+?)\s+for\s+(\w+)\s+in\s+([^)]+?)\s+if\s+([^)]+)\)/g,
+    function(_, expr, v, iter, cond) {
+      return _pyExpr(iter, cn) + '.filter(function(' + v + '){return ' + _pyExpr(cond, cn) + ';}).map(function(' + v + '){return ' + _pyExpr(expr, cn) + ';}).reduce(function(a,b){return a+b;},0)';
+    });
+  if (cn && cn.length > 0) {
+    for (var ci = 0; ci < cn.length; ci++) {
+      var pat = new RegExp('\\b' + cn[ci] + '\\(', 'g');
+      r = r.replace(pat, 'new ' + cn[ci] + '(');
+    }
+    r = r.replace(/\bnew\s+new\b/g, 'new');
+  }
+  return r;
+}
+
+function _pyStr(v) {
+  if (v === null || v === undefined) return 'None';
+  if (v === true) return 'True';
+  if (v === false) return 'False';
+  if (v instanceof Error) return v.message;
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v)) return '[' + v.map(_pyRepr).join(', ') + ']';
+  if (v instanceof Set) return '{' + Array.from(v).map(_pyRepr).join(', ') + '}';
+  if (typeof v === 'object') {
+    if (v.constructor && v.constructor !== Object && v.toString !== Object.prototype.toString) {
+      return v.toString();
+    }
+    var p = [], k = Object.keys(v);
+    for (var i = 0; i < k.length; i++) p.push(_pyRepr(k[i]) + ': ' + _pyRepr(v[k[i]]));
+    return '{' + p.join(', ') + '}';
+  }
+  return String(v);
+}
+
+function _pyRepr(v) {
+  if (typeof v === 'string') return "'" + v + "'";
+  return _pyStr(v);
+}
+
 // ─── EXECUTE: JS EMULATOR (FALLBACK) ───────────────────────────
 function executeEmulator(code, callback) {
-  var lines = [];
-  var fakePrint = function() {
-    var args = [];
-    for (var i = 0; i < arguments.length; i++) args.push(String(arguments[i]));
-    lines.push(args.join(" "));
-  };
+  var outputLines = [];
+
+  if (/\bopen\s*\(|\.read\(\)|\.write\(|\.readlines\(\)|csv\.\w|os\.replace|os\.path/.test(code)) {
+    callback({
+      output: "\u26a0 Este ejercicio requiere acceso al sistema de archivos.\nUs\u00e1 el servidor Python para ejecutarlo.\nEl emulador JS no soporta operaciones de I/O.",
+      error: true,
+      mode: "emulator"
+    });
+    return;
+  }
 
   try {
-    var js = code
-      .replace(/^\s*#[^\n]*/gm, "")
-      .replace(/print\s*\(/g, "__p__(")
-      .replace(/\bTrue\b/g, "true")
-      .replace(/\bFalse\b/g, "false")
-      .replace(/\band\b/g, "&&")
-      .replace(/\bor\b/g, "||")
-      .replace(/\bnot\b/g, "!");
+    var js = _pyToJS(code);
 
-    var helpers =
+    var ctx = { _out: outputLines, _pyStr: _pyStr, _pyRepr: _pyRepr };
+
+    var h =
+      "var _out=this._out,_pyStr=this._pyStr,_pyRepr=this._pyRepr;\n" +
+      "function __p__(){var p=[];for(var i=0;i<arguments.length;i++)p.push(_pyStr(arguments[i]));_out.push(p.join(' '));}\n" +
+      "function __type__(v){" +
+        "if(v===null||v===undefined)return '<class \\'NoneType\\'>';" +
+        "if(typeof v==='boolean')return '<class \\'bool\\'>';" +
+        "if(typeof v==='number')return Number.isInteger(v)?'<class \\'int\\'>':'<class \\'float\\'>';" +
+        "if(typeof v==='string')return '<class \\'str\\'>';" +
+        "if(Array.isArray(v))return '<class \\'list\\'>';" +
+        "if(v instanceof Set)return '<class \\'set\\'>';" +
+        "if(typeof v==='object')return '<class \\'dict\\'>';" +
+        "return '<class \\'' + typeof v + '\\'>';}\n" +
+      "function __typeName__(v){" +
+        "if(v===null||v===undefined)return 'NoneType';" +
+        "if(typeof v==='boolean')return 'bool';" +
+        "if(typeof v==='number')return Number.isInteger(v)?'int':'float';" +
+        "if(typeof v==='string')return 'str';" +
+        "if(Array.isArray(v))return 'list';" +
+        "if(v instanceof Error)return v.name||'Error';" +
+        "if(typeof v==='object')return 'dict';return typeof v;}\n" +
+      "function __in__(val,c){" +
+        "if(Array.isArray(c))return c.indexOf(val)!==-1;" +
+        "if(c instanceof Set)return c.has(val);" +
+        "if(typeof c==='string')return c.indexOf(val)!==-1;" +
+        "return val in c;}\n" +
+      "function __setdefault__(o,k,d){if(!(k in o))o[k]=d;return o[k];}\n" +
       "function range(a,b,c){var r=[];if(b===undefined){b=a;a=0;}if(!c)c=1;" +
-      "if(c>0)for(var i=a;i<b;i+=c)r.push(i);" +
-      "else for(var i=a;i>b;i+=c)r.push(i);return r;}" +
-      "function len(x){return x.length;}" +
-      "function type(x){return '<class \\'' + typeof x + '\\'>';}";
+        "if(c>0)for(var i=a;i<b;i+=c)r.push(i);" +
+        "else for(var i=a;i>b;i+=c)r.push(i);return r;}\n" +
+      "function len(x){if(x instanceof Set)return x.size;if(typeof x==='object'&&!Array.isArray(x))return Object.keys(x).length;return x.length;}\n" +
+      "function sum(a){if(typeof a==='number')return a;var t=0;for(var i=0;i<a.length;i++)t+=a[i];return t;}\n" +
+      "function max(){var a=arguments.length===1&&Array.isArray(arguments[0])?arguments[0]:Array.prototype.slice.call(arguments);return Math.max.apply(null,a);}\n" +
+      "function min(){var a=arguments.length===1&&Array.isArray(arguments[0])?arguments[0]:Array.prototype.slice.call(arguments);return Math.min.apply(null,a);}\n" +
+      "function abs(x){return Math.abs(x);}\n" +
+      "function pow(a,b){return Math.pow(a,b);}\n" +
+      "function round(v,n){if(n===undefined)return Math.round(v);var f=Math.pow(10,n);return Math.round(v*f)/f;}\n" +
+      "function sorted(a){var c=a.slice();c.sort(function(x,y){return typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y));});return c;}\n" +
+      "function enumerate(a){var r=[];for(var i=0;i<a.length;i++)r.push([i,a[i]]);return r;}\n" +
+      "function zip(){var a=Array.prototype.slice.call(arguments);var m=Math.min.apply(null,a.map(function(x){return x.length;}));var r=[];for(var i=0;i<m;i++){var t=[];for(var j=0;j<a.length;j++)t.push(a[j][i]);r.push(t);}return r;}\n" +
+      "function str(v){return _pyStr(v);}\n" +
+      "function int(v){var n=parseInt(v,10);if(isNaN(n))throw new ValueError('invalid literal for int()');return n;}\n" +
+      "function float(v){var n=parseFloat(v);if(isNaN(n))throw new ValueError('could not convert to float');return n;}\n" +
+      "function bool(v){return !!v;}\n" +
+      "function list(v){return Array.from(v);}\n" +
+      "function tuple(v){return Array.from(v);}\n" +
+      "function dict(v){if(!v)return {};var r={};for(var i=0;i<v.length;i++)r[v[i][0]]=v[i][1];return r;}\n" +
+      "function input(p){return '';}\n" +
+      "var Exception=Error;\n" +
+      "function ValueError(m){var e=new Error(m);e.name='ValueError';return e;}\n" +
+      "function ZeroDivisionError(m){var e=new Error(m);e.name='ZeroDivisionError';return e;}\n" +
+      "function KeyError(m){var e=new Error(m);e.name='KeyError';return e;}\n" +
+      "function IndexError(m){var e=new Error(m);e.name='IndexError';return e;}\n";
 
-    new Function("__p__", helpers + js)(fakePrint);
+    new Function(h + js).call(ctx);
+
     callback({
-      output: lines.join("\n") || "(sin salida visible)",
+      output: outputLines.join("\n") || "(sin salida visible)",
       error: false,
       mode: "emulator"
     });
@@ -442,7 +671,11 @@ function validateOutput(actualOutput, expectedOutput) {
     return line.trim();
   }).join("\n");
 
-  return actual === expected;
+  if (actual === expected) return true;
+
+  // Normalize float trailing .0 so "121" matches "121.0"
+  var norm = function(s) { return s.replace(/\b(\d+)\.0\b/g, '$1'); };
+  return norm(actual) === norm(expected);
 }
 
 // ─── ACTIONS ────────────────────────────────────────────────────
