@@ -379,6 +379,15 @@ function runExercise(exId) {
 
 // ─── EXECUTE: PYTHON BACKEND (PRIMARY) ──────────────────────────
 function checkBackendStatus() {
+  // No intentar conectar al backend si estamos en GitHub Pages (hosting estático)
+  var isGitHubPages = window.location.hostname.includes('github.io');
+  if (isGitHubPages) {
+    backendActive = false;
+    updateBackendLight();
+    return;
+  }
+  
+  // Si estamos en localhost o servidor real, verificar backend
   fetch("/api/execute", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -409,6 +418,15 @@ function updateBackendLight() {
 }
 
 function executePython(code, callback) {
+  // Si estamos en GitHub Pages, usar emulador directamente
+  var isGitHubPages = window.location.hostname.includes('github.io');
+  if (isGitHubPages) {
+    backendActive = false;
+    executeEmulator(code, callback);
+    return;
+  }
+  
+  // Si estamos en localhost o servidor real, intentar backend
   fetch("/api/execute", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
