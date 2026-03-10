@@ -176,6 +176,14 @@ Cada `data.js` ejecuta `window.coursesData.push({ ... })` con esta estructura:
 2. Copiar la estructura del modelo de datos y completar lecciones, ejercicios, actividades y tarea.
 3. Agregar la línea `<script src="cursos/{curso}/dayN/data.js"></script>` en `index.html` antes de `<script src="app.js">`.
 
+Nota: Ya se agregó el `day3` para el curso `python` ("Día 3 — Manejo de Archivos"). Si no ves el nuevo módulo en la barra lateral, recarga la página (F5) o confirma que `index.html` contiene la línea:
+
+```html
+<script src="cursos/python/day3/data.js"></script>
+```
+
+Esto debe cargarse antes de `app.js` para que la SPA reconozca el módulo al iniciar.
+
 ---
 
 ## Ejecución
