@@ -12,7 +12,7 @@ let activeCourse  = courses[0];
 let activeModule  = courses[0].modules[0];
 let activeLesson  = courses[0].modules[0].lessons[0];
 let activeTab     = "teoria";
-let sidebarOpen   = true;
+let sidebarOpen   = window.innerWidth > 768;
 let backendActive = false;
 const exStates    = {};
 
@@ -53,7 +53,11 @@ function render() {
   var c = activeCourse.color;
   var a = activeCourse.accent;
 
+  var isMobile = window.innerWidth <= 768;
+  var overlayClass = (isMobile && sidebarOpen) ? 'sidebar-overlay visible' : 'sidebar-overlay';
+
   document.getElementById("app").innerHTML =
+    '<div class="' + overlayClass + '" data-action="closeSidebar"></div>' +
     '<aside class="sidebar' + (sidebarOpen ? '' : ' closed') + '">' +
       renderSidebar(c, a) +
     '</aside>' +
@@ -785,6 +789,12 @@ function toggleSidebar() {
   render();
 }
 
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 768) {
+    sidebarOpen = false;
+  }
+}
+
 function toggleHint(exId) {
   var es = exStates[exId];
   if (es) { es.showHint = !es.showHint; renderContentArea(); }
@@ -844,11 +854,12 @@ function handleClick(e) {
   var id = btn.getAttribute("data-id");
 
   switch (action) {
-    case "selectCourse":  selectCourse(id); break;
-    case "selectModule":  selectModule(id); break;
+    case "selectCourse":  selectCourse(id); closeSidebarOnMobile(); break;
+    case "selectModule":  selectModule(id); closeSidebarOnMobile(); break;
     case "selectLesson":  selectLesson(id); break;
     case "setTab":        setTab(id); break;
     case "toggleSidebar": toggleSidebar(); break;
+    case "closeSidebar":  sidebarOpen = false; render(); break;
     case "runEx":         saveTextareaValue(id); runExercise(id); break;
     case "toggleHint":    saveTextareaValue(id); toggleHint(id); break;
     case "toggleSol":     saveTextareaValue(id); toggleSolution(id); break;

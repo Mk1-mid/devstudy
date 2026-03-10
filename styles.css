@@ -442,3 +442,154 @@ body {
 .empty-state { text-align: center; padding-top: 70px; }
 .empty-state .icon { font-size: 52px; margin-bottom: 14px; }
 .empty-state p     { font-size: 15px; color: #334155; }
+
+/* Sidebar overlay (móvil) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 90;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet (≤ 768px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body { overflow: auto; }
+
+  #app {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* Sidebar como overlay lateral */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    z-index: 100;
+    width: 260px;
+    min-width: 260px;
+    transform: translateX(0);
+    transition: transform 0.28s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+  .sidebar.closed {
+    transform: translateX(-100%);
+    width: 260px;
+    min-width: 260px;
+    box-shadow: none;
+  }
+  .sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* Main ocupa todo */
+  .main {
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* Header más compacto */
+  .header {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .header-title { font-size: 14px; }
+  .backend-status {
+    padding: 4px 8px;
+    font-size: 10px;
+    gap: 6px;
+  }
+  .backend-light { width: 8px; height: 8px; }
+
+  /* Lesson nav scroll horizontal */
+  .lesson-nav {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .lesson-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  /* Tabs */
+  .tabs { padding: 0 12px; }
+  .tab-btn { padding: 10px 12px; font-size: 11.5px; }
+
+  /* Content */
+  .content {
+    padding: 18px 14px;
+    overflow: visible;
+  }
+  .content-inner { max-width: 100%; }
+
+  /* Cards */
+  .theory-card, .exercise-card { padding: 16px; border-radius: 10px; }
+  .code-block { padding: 12px; font-size: 11.5px; }
+  .exercise-editor { font-size: 11.5px; min-height: 110px; padding: 10px 12px; }
+
+  /* Activity */
+  .activity-card { padding: 18px; }
+  .activity-top { flex-direction: column; }
+  .activity-time { margin-left: 0; margin-top: 12px; text-align: left; }
+
+  /* Homework */
+  .homework-card { padding: 18px; }
+  .homework-meta { flex-direction: column; }
+  .homework-meta-item { min-width: auto; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — Móvil pequeño (≤ 480px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* Header aún más compacto */
+  .header { padding: 8px 12px; }
+  .header-title { font-size: 13px; }
+  .header-breadcrumb { gap: 4px; }
+  .header-breadcrumb .course-name,
+  .header-breadcrumb .day { font-size: 10px; }
+  .backend-label { display: none; }
+
+  /* Tabs apilables */
+  .tabs { padding: 0 8px; overflow-x: auto; }
+  .tab-btn { padding: 8px 10px; font-size: 11px; white-space: nowrap; }
+
+  /* Content full width */
+  .content { padding: 12px 10px; }
+
+  /* Cards más compactas */
+  .theory-card, .exercise-card { padding: 14px; }
+  .theory-card h3, .exercise-card h4 { font-size: 13.5px; }
+  .theory-text, .exercise-desc { font-size: 12.5px; }
+  .code-block { font-size: 11px; padding: 10px; }
+  .exercise-editor { font-size: 11px; padding: 8px 10px; min-height: 100px; }
+
+  .exercise-actions { gap: 6px; }
+  .ex-btn { padding: 7px 12px; font-size: 11px; }
+
+  /* Lesson buttons */
+  .lesson-nav { padding: 6px 8px; }
+  .lesson-btn { font-size: 10px; padding: 4px 8px; }
+
+  /* Activity */
+  .activity-card { padding: 14px; }
+  .activity-card h3 { font-size: 14px; }
+  .activity-badges { flex-wrap: wrap; }
+
+  /* Homework */
+  .homework-card { padding: 14px; }
+  .homework-card h3 { font-size: 14.5px; }
+
+  /* Section header */
+  .section-header h3 { font-size: 15px; }
+  .section-header p { font-size: 11.5px; }
+
+  /* Output */
+  .output-box { padding: 10px 12px; }
+  .output-text { font-size: 12px; }
+}
