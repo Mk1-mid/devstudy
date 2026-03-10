@@ -5,7 +5,7 @@ FROM node:20-slim
 RUN apt-get update && \
     apt-get install -y python3 && \
     rm -rf /var/lib/apt/lists/* && \
-    alternatives --install /usr/bin/python python /usr/bin/python3 1
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 # Establecer directorio de trabajo
 WORKDIR /app
