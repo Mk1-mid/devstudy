@@ -65,12 +65,19 @@ app.get("/api/health", function (_req, res) {
   res.json({ status: "ok", python: true });
 });
 
+// ─── SPA FALLBACK: Servir index.html para todas las rutas no-API ─
+app.get("*", function (req, res) {
+  if (!req.path.startsWith("/api/")) {
+    res.sendFile(path.join(__dirname, "index.html"));
+  }
+});
+
 // ─── START ──────────────────────────────────────────────────────
-const server = app.listen(PORT, function () {
+const server = app.listen(PORT, "0.0.0.0", function () {
   console.log("");
   console.log("  ╔══════════════════════════════════════════╗");
   console.log("  ║   DevStudy corriendo en:                 ║");
-  console.log("  ║   http://localhost:" + PORT + "                  ║");
+  console.log("  ║   http://0.0.0.0:" + PORT + "                      ║");
   console.log("  ║   Python habilitado  ✓                   ║");
   console.log("  ╚══════════════════════════════════════════╝");
   console.log("");
