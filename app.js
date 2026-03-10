@@ -13,6 +13,7 @@ let activeModule  = courses[0].modules[0];
 let activeLesson  = courses[0].modules[0].lessons[0];
 let activeTab     = "teoria";
 let sidebarOpen   = true;
+let backendActive = false;
 const exStates    = {};
 
 // ─── HELPERS ─────────────────────────────────────────────────────
@@ -109,9 +110,15 @@ function renderSidebar(c, a) {
 
 // ─── RENDER: HEADER ─────────────────────────────────────────────
 function renderHeader(c) {
+  var statusColor = backendActive ? '#10b981' : '#64748b';
+  var statusLabel = backendActive ? 'Backend activo' : 'Modo emulación';
   return '<div class="header">' +
     '<button class="toggle-btn" data-action="toggleSidebar">&#9776;</button>' +
     '<div class="header-info">' +
+      '<div class="backend-status">' +
+        '<div class="backend-light" id="backendLight" style="background-color:' + statusColor + '"></div>' +
+        '<span class="backend-label">' + statusLabel + '</span>' +
+      '</div>' +
       '<div class="header-breadcrumb">' +
         '<span class="course-icon">' + activeCourse.icon + '</span>' +
         '<span class="course-name" style="color:' + c + '">' + activeCourse.name + '</span>' +
@@ -371,6 +378,36 @@ function runExercise(exId) {
 }
 
 // ─── EXECUTE: PYTHON BACKEND (PRIMARY) ──────────────────────────
+function checkBackendStatus() {
+  fetch("/api/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "print('test')" }),
+    timeout: 2000
+  })
+  .then(function(res) { return res.json(); })
+  .then(function() {
+    backendActive = true;
+    updateBackendLight();
+  })
+  .catch(function() {
+    backendActive = false;
+    updateBackendLight();
+  });
+}
+
+function updateBackendLight() {
+  var light = document.getElementById('backendLight');
+  var label = document.querySelector('.backend-label');
+  if (light) {
+    light.style.backgroundColor = backendActive ? '#10b981' : '#64748b';
+    light.className = backendActive ? 'backend-light active' : 'backend-light';
+  }
+  if (label) {
+    label.textContent = backendActive ? 'Backend activo' : 'Modo emulación';
+  }
+}
+
 function executePython(code, callback) {
   fetch("/api/execute", {
     method: "POST",
@@ -379,6 +416,8 @@ function executePython(code, callback) {
   })
   .then(function(res) { return res.json(); })
   .then(function(data) {
+    backendActive = true;
+    updateBackendLight();
     var output = (data.output || "").replace(/\r\n/g, "\n").replace(/\n$/, "");
     callback({
       output: output || "(sin salida visible)",
@@ -387,6 +426,8 @@ function executePython(code, callback) {
     });
   })
   .catch(function() {
+    backendActive = false;
+    updateBackendLight();
     executeEmulator(code, callback);
   });
 }
@@ -806,4 +847,6 @@ function saveTextareaValue(exId) {
 document.addEventListener("DOMContentLoaded", function() {
   document.body.addEventListener("click", handleClick);
   render();
+  setTimeout(function() { checkBackendStatus(); }, 500);
+  setInterval(function() { checkBackendStatus(); }, 10000);
 });
